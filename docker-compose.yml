@@ -8,8 +8,6 @@ services:
       REDIS_PASSWORD: default
     ports:
       - "6379:6379"
-    networks:
-      - redis
 
   postgres:
     image: postgres:latest
@@ -22,14 +20,12 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-    networks:
-      - postgres
 
   waha:
     image: devlikeapro/waha:latest
     container_name: waha
     environment:
-      WHATSAPP_HOOK_URL: n8n:5678/webhook/webhook
+      WHATSAPP_HOOK_URL: http://host.docker.internal:5678/webhook/webhook
       WHATSAPP_DEFAULT_ENGINE: GOWS
       WHATSAPP_HOOK_EVENTS: message
     volumes:
@@ -37,15 +33,13 @@ services:
       - waha_media:/app/.media
     ports:
       - "3000:3000"
-    networks:
-      - n8n
 
   n8n:
     image: n8nio/n8n:latest
     container_name: n8n
     environment:
-      WEBHOOK_URL: n8n:5678
-      N8N_HOST: n8n
+      WEBHOOK_URL: http://host.docker.internal:5678
+      N8N_HOST: host.docker.internal
       GENERIC_TIMEZONE: America/Sao_Paulo
       N8N_LOG_LEVEL: debug
       N8N_COMMUNITY_PACKAGES_ALLOW_TOOL_USAGE: true
@@ -54,19 +48,6 @@ services:
       - n8n_data:/home/node/.n8n
     ports:
       - "5678:5678"
-    networks:
-      - n8n
-      - redis
-      - postgres
-
-
-networks:
-  n8n:
-    driver: bridge
-  redis:
-    driver: bridge
-  postgres:
-    driver: bridge
 
 volumes:
   pgdata:
