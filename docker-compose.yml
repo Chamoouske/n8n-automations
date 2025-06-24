@@ -45,7 +45,7 @@ services:
     container_name: n8n
     environment:
       WEBHOOK_URL: n8n:5678
-      N8N_HOST: host.docker.internal
+      N8N_HOST: n8n
       GENERIC_TIMEZONE: America/Sao_Paulo
       N8N_LOG_LEVEL: debug
       N8N_COMMUNITY_PACKAGES_ALLOW_TOOL_USAGE: true
