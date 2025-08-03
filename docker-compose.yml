@@ -105,6 +105,7 @@ services:
     restart: unless-stopped
     environment:
       - EXECUTIONS_MODE=regular
+      - WEBHOOK_URL=${N8N_WEBHOOK_URL:-http://host.docker.internal:5678}
     env_file: .env.n8n
     volumes:
       - n8n_data:/home/node/.n8n
