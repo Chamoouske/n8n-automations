@@ -36,6 +36,7 @@ services:
   waha:
     image: devlikeapro/waha:latest
     container_name: waha
+    restart: always
     environment:
       WHATSAPP_HOOK_URL: ${WEBHOOk_URL:-http://host.docker.internal:5678}/webhook/webhook
       WHATSAPP_DEFAULT_ENGINE: GOWS
@@ -102,7 +103,6 @@ services:
   n8n-editor:
     image: n8nio/n8n:latest
     container_name: n8n-editor
-    restart: unless-stopped
     environment:
       - EXECUTIONS_MODE=regular
       - WEBHOOK_URL=${N8N_WEBHOOK_URL:-http://host.docker.internal:5678}
