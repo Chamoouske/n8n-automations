@@ -1,0 +1,18 @@
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n
+    container_name: n8n
+    environment:
+      WEBHOOK_URL: ${WEBHOOR_URL}
+      N8N_HOST: ${WEBHOOR_URL}
+      GENERIC_TIMEZONE: America/Sao_Paulo
+      N8N_LOG_LEVEL: debug
+    ports:
+      - "5678:5678"
+    volumes:
+      - ./data:/home/data
+      - n8n_data:/home/node/.n8n
+    restart: unless-stopped
+
+volumes:
+  n8n_data:

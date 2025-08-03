@@ -1,0 +1,134 @@
+services:
+  redis:
+    image: redis:alpine
+    command: redis-server --requirepass default
+    container_name: redis
+    environment:
+      REDIS_USER: default
+      REDIS_PASSWORD: default
+    restart: always
+    ports:
+      - "6379:6379"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - n8n_network
+    volumes:
+      - redis_data:/data
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_USER: default
+      POSTGRES_PASSWORD: default
+      POSTGRES_DB: default
+    restart: always
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - n8n_network
+
+  waha:
+    image: devlikeapro/waha:latest
+    container_name: waha
+    environment:
+      WHATSAPP_HOOK_URL: ${WEBHOOk_URL:-http://host.docker.internal:5678}/webhook/webhook
+      WHATSAPP_DEFAULT_ENGINE: GOWS
+      WHATSAPP_HOOK_EVENTS: message
+      WAHA_AUTO_START_DELAY_SECONDS: 1
+      WHATSAPP_RESTART_ALL_SESSIONS: True
+    volumes:
+      - waha_media:/app/.media
+      - waha_webhook:/app/.webhook
+      - waha_sessions:/app/.sessions
+    ports:
+      - "3000:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - n8n_network
+
+  n8n-worker:
+    image: n8nio/n8n:latest
+    container_name: n8n-worker
+    env_file: .env.n8n
+    environment:
+      - EXECUTIONS_MODE=queue
+      - N8N_EXECUTIONS_MODE=queue
+    command: worker
+    restart: always
+    volumes:
+      - n8n_data:/home/node/.n8n
+    ports:
+      - "5676:5678"
+    depends_on:
+      redis:
+        condition: service_started
+      postgres:
+        condition: service_started
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - n8n_network
+
+  n8n-webhook:
+    image: n8nio/n8n:latest
+    container_name: n8n-webhook
+    env_file: .env.n8n
+    environment:
+      - EXECUTIONS_MODE=queue
+      - N8N_EXECUTIONS_MODE=queue
+    command: webhook
+    restart: always
+    volumes:
+      - n8n_data:/home/node/.n8n
+    ports:
+      - "5677:5678"
+    depends_on:
+      redis:
+        condition: service_started
+      postgres:
+        condition: service_started
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - n8n_network
+
+  n8n-editor:
+    image: n8nio/n8n:latest
+    container_name: n8n-editor
+    restart: unless-stopped
+    environment:
+      - EXECUTIONS_MODE=regular
+    env_file: .env.n8n
+    volumes:
+      - n8n_data:/home/node/.n8n
+    ports:
+      - "5678:5678"
+    depends_on:
+      redis:
+        condition: service_started
+      postgres:
+        condition: service_started
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - n8n_network
+
+volumes:
+  n8n_data:
+  pgdata:
+  redis_data:
+  waha_sessions:
+  waha_media:
+  waha_webhook:
+
+
+networks:
+  n8n_network:
+    driver: bridge
